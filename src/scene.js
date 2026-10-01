@@ -6,7 +6,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { createMushroomSystem } from './mushrooms';
 import { createGuidedGrowth } from './guided-growth';
 import { createOngoingGrowth } from './ongoing-growth';
-import { createGrowthPlan, originGlow } from './growth-origins';
+import { createGrowthPlan, originGlow, openingViewWeight } from './growth-origins';
 import { DEFAULT_CONFIG } from '../shared/runtime-config';
 
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
@@ -101,6 +101,8 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
   const warm = new THREE.PointLight('#fff2dc', 11, 31, 2), cool = new THREE.PointLight('#9daec4', 7, 27, 2), pink = new THREE.PointLight('#d73c21', 5, 26, 2);
   scene.add(warm, cool, pink);
   const root = v(0, 0, -6), { origins, primaryStarts } = createGrowthPlan(root);
+  const colonyCenter = origins.reduce((center, origin) => center.add(origin.position), v(0, 0, 0)).multiplyScalar(1 / origins.length);
+  const overviewEye = colonyCenter.clone().add(v(-10, 9, 36));
   const branches = [], primaries = [], blossomSites = [], filamentSegments = [];
   const bloomMap = glowTexture(), barkMap = fiberTexture();
   const bark = new THREE.MeshStandardMaterial({ color: '#d9dad3', map: barkMap, bumpMap: barkMap, bumpScale: .034, emissive: '#b6c3b8', emissiveIntensity: .29, roughness: .83 });
@@ -193,10 +195,10 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
   for (let i = 0; i < primaryStarts.length; i++) {
     const start = primaryStarts[i], y = 1 - 2 * (i + .5) / primaryStarts.length, angle = i * 2.39996;
     const direction = i === 0 ? v(.12, .04, -1) : v(Math.cos(angle) * Math.sqrt(1 - y * y), y * .25, Math.sin(angle) * Math.sqrt(1 - y * y));
-    if (i > 1 && i % 2 === 0) direction.lerp(root.clone().sub(start.position).normalize(), .44).normalize();
+    if (i > 1 && start.arm === 0) direction.lerp(colonyCenter.clone().sub(start.position).normalize(), .44).normalize();
     const radius = rand(.085, .13) * growthSettings.primaryThickness;
     const primary = addBranch(path(start.position, direction, rand(27, 39), 10), radius, start.birth, rand(.25, .35), 0);
-    primaries.push(primary); fork(primary, Math.round(4 * growthSettings.density));
+    primaries.push(primary); fork(primary, Math.round(3 * growthSettings.density));
   }
   // Short, unevenly sized hyphae fill the space near the seed and early forks.
   function addCoreShoot(parent, attach, length, radius) {
@@ -329,7 +331,10 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
     const proximity = 1 - .27 * smooth((progress - .14) / .14) * (1 - smooth((progress - .38) / .25));
     const eye = point.clone().addScaledVector(forward, -14 * distance * proximity).addScaledVector(side, (7 + drift) * distance * proximity).add(v(0, 3.6 * distance * proximity, 0));
     const target = point.clone().addScaledVector(forward, 3.4).addScaledVector(side, drift * .45);
-    target.lerp(root, smooth((progress - .2) / .3) * (.78 - ongoingFollow * .85) * (1 - focus));
+    target.lerp(colonyCenter, smooth((progress - .2) / .3) * (.78 - ongoingFollow * .85) * (1 - focus));
+    const overview = openingViewWeight(progress) * (1 - focus);
+    eye.lerp(overviewEye, overview);
+    target.lerp(colonyCenter, overview);
     const offset = eye.clone().sub(target), spherical = new THREE.Spherical().setFromVector3(offset);
     spherical.theta += yaw; spherical.phi = clamp(spherical.phi + pitch, .2, Math.PI - .2);
     eye.copy(target).add(new THREE.Vector3().setFromSpherical(spherical));

@@ -10,7 +10,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 ## Visual direction retained from user feedback
 
-- Growth starts from four separated luminous points that awaken over the first several seconds, then extend concurrently into a three-dimensional, mycelium-like network. Avoid a single dominant trunk or one overall growth direction.
+- Growth starts from six well-separated luminous points that awaken over the first several seconds, then extend concurrently into a three-dimensional, mycelium-like network. Keep the opening camera wide enough to show their spacing before it follows a branch. Avoid a single dominant trunk or one overall growth direction.
 - The camera follows a seeded, connected sequence of random forks, then looks into the interwoven center as the space matures. Keep camera transitions smooth.
 - New branches must extend continuously, especially at the start; never reveal them by whole tube segments.
 - The current visual theme is a mycelium network: fine pale filaments against a near-black environment. It spreads rapidly first; red-orange mushrooms appear later in varied sizes and clusters, based on the user's charred-ground and cup-mushroom reference image.
