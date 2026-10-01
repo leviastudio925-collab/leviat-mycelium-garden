@@ -3,11 +3,12 @@ import { createGuidedGrowth } from './guided-growth.js';
 
 // Continue the network after the timeline reaches 100%, with a small fixed
 // geometry budget so an installation can remain open for hours.
-export function createOngoingGrowth(scene, barkMaterial, glowTexture, seeds) {
+export function createOngoingGrowth(scene, barkMaterial, glowTexture, seeds, { center = null, maxRadius = 36 } = {}) {
   const initial = seeds.map((seed) => ({
     origin: seed.origin.clone(), direction: seed.direction.clone().normalize(),
     radius: seed.radius, speed: seed.speed,
   }));
+  const networkCenter = center?.clone();
   let walkers = [];
   let active = false, paused = false, elapsed = 0, nextFork = 7;
 
@@ -48,6 +49,11 @@ export function createOngoingGrowth(scene, barkMaterial, glowTexture, seeds) {
         Math.cos(phase * .83) + Math.sin(phase * .43) * .4,
       ).normalize();
       const desired = guide.heading.clone().multiplyScalar(.78).addScaledVector(drift, .22).normalize();
+      if (networkCenter) {
+        const distance = walker.point.distanceTo(networkCenter);
+        const inwardWeight = Math.max(0, Math.min(1, (distance - maxRadius * .55) / (maxRadius * .4)));
+        if (inwardWeight > 0) desired.lerp(networkCenter.clone().sub(walker.point).normalize(), inwardWeight * .9).normalize();
+      }
       guide.advance(desired, dt * walker.speed);
       walker.point.copy(guide.point);
       walker.heading.copy(guide.heading);

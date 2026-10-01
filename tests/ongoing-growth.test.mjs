@@ -57,3 +57,26 @@ test('growth continues after one path fills its geometry and reset clears it', (
   material.dispose();
   texture.dispose();
 });
+
+test('ongoing tips keep weaving through the established network instead of escaping into empty space', () => {
+  const scene = new THREE.Scene();
+  const material = new THREE.MeshStandardMaterial();
+  const texture = new THREE.Texture();
+  const center = new THREE.Vector3();
+  const growth = createOngoingGrowth(scene, material, texture, [
+    { origin: new THREE.Vector3(10, 0, 0), direction: new THREE.Vector3(1, 0, 0), radius: .08, speed: 3 },
+  ], { center, maxRadius: 24 });
+
+  growth.start();
+  let furthest = 0;
+  for (let frame = 0; frame < 1200; frame++) {
+    growth.advance(.05);
+    furthest = Math.max(furthest, growth.focusPoint.distanceTo(center));
+  }
+  assert.ok(furthest < 42, `tip left the network's volume: ${furthest.toFixed(1)}`);
+  assert.ok(growth.focusPoint.distanceTo(new THREE.Vector3(10, 0, 0)) > 1);
+
+  growth.dispose();
+  material.dispose();
+  texture.dispose();
+});

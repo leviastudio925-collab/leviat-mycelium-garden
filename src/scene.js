@@ -7,6 +7,7 @@ import { createMushroomSystem } from './mushrooms';
 import { createGuidedGrowth } from './guided-growth';
 import { createOngoingGrowth } from './ongoing-growth';
 import { createGrowthPlan, originGlow, openingViewWeight } from './growth-origins';
+import { advancePostTimelineFollow, centerPull, followEyeOffsets } from './post-timeline-camera';
 import { DEFAULT_CONFIG } from '../shared/runtime-config';
 
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
@@ -252,7 +253,7 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
       origin: branch.curve.getPointAt(1), direction: branch.curve.getTangentAt(1),
       radius: [.034, .029, .025][index] * growthSettings.secondaryThickness, speed: [2.3, 2.1, 1.9][index] * growthSettings.speed,
     })),
-  ]);
+  ], { center: colonyCenter, maxRadius: 36 });
 
   const dustCount = 960, dustPositions = new Float32Array(dustCount * 3), dustColors = new Float32Array(dustCount * 3);
   const dustPalette = ['#d0dac9', '#788d83', '#a7aeb2', '#f68253'];
@@ -329,9 +330,10 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
     if (side.lengthSq() < .001) side.set(1, 0, 0);
     const drift = Math.sin(progress * 31) * .52 + Math.sin(progress * 57) * .23;
     const proximity = 1 - .27 * smooth((progress - .14) / .14) * (1 - smooth((progress - .38) / .25));
-    const eye = point.clone().addScaledVector(forward, -14 * distance * proximity).addScaledVector(side, (7 + drift) * distance * proximity).add(v(0, 3.6 * distance * proximity, 0));
-    const target = point.clone().addScaledVector(forward, 3.4).addScaledVector(side, drift * .45);
-    target.lerp(colonyCenter, smooth((progress - .2) / .3) * (.78 - ongoingFollow * .85) * (1 - focus));
+    const eyeOffsets = followEyeOffsets(ongoingFollow);
+    const eye = point.clone().addScaledVector(forward, eyeOffsets.along * distance * proximity).addScaledVector(side, (eyeOffsets.side + drift) * distance * proximity).add(v(0, 3.6 * distance * proximity, 0));
+    const target = point.clone().addScaledVector(forward, 3.4 - 7 * ongoingFollow).addScaledVector(side, drift * .45);
+    target.lerp(colonyCenter, centerPull(progress, ongoingFollow) * (1 - focus));
     const overview = openingViewWeight(progress) * (1 - focus);
     eye.lerp(overviewEye, overview);
     target.lerp(colonyCenter, overview);
@@ -404,7 +406,7 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
       if (progress >= 1) {
         if (!ongoing.active) ongoing.start();
         ongoing.advance(dt);
-        ongoingFollow = Math.min(.3, ongoingFollow + dt * .028);
+        ongoingFollow = advancePostTimelineFollow(ongoingFollow, dt);
       }
     }
     updateGuidedGrowth(dt); updateGeometry(); updateCamera(now, dt);
