@@ -6,6 +6,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { createMushroomSystem } from './mushrooms';
 import { createGuidedGrowth } from './guided-growth';
 import { createOngoingGrowth } from './ongoing-growth';
+import { createGrowthPlan, originGlow } from './growth-origins';
 import { DEFAULT_CONFIG } from '../shared/runtime-config';
 
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
@@ -99,7 +100,8 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
   scene.add(new THREE.AmbientLight('#ced1ca', .58));
   const warm = new THREE.PointLight('#fff2dc', 11, 31, 2), cool = new THREE.PointLight('#9daec4', 7, 27, 2), pink = new THREE.PointLight('#d73c21', 5, 26, 2);
   scene.add(warm, cool, pink);
-  const root = v(0, 0, -6), branches = [], primaries = [], blossomSites = [], filamentSegments = [];
+  const root = v(0, 0, -6), { origins, primaryStarts } = createGrowthPlan(root);
+  const branches = [], primaries = [], blossomSites = [], filamentSegments = [];
   const bloomMap = glowTexture(), barkMap = fiberTexture();
   const bark = new THREE.MeshStandardMaterial({ color: '#d9dad3', map: barkMap, bumpMap: barkMap, bumpScale: .034, emissive: '#b6c3b8', emissiveIntensity: .29, roughness: .83 });
   const fineBark = new THREE.MeshStandardMaterial({ color: '#e4e6dc', map: barkMap, bumpMap: barkMap, bumpScale: .021, emissive: '#cbd4ca', emissiveIntensity: .26, roughness: .8 });
@@ -187,12 +189,13 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
     }
   }
 
-  // Golden-angle directions cover the sphere; no branch serves as a single trunk.
-  for (let i = 0; i < 8; i++) {
-    const y = 1 - 2 * (i + .5) / 8, angle = i * 2.39996;
+  // Two broad paths leave each colony; some turn inward and weave through the others.
+  for (let i = 0; i < primaryStarts.length; i++) {
+    const start = primaryStarts[i], y = 1 - 2 * (i + .5) / primaryStarts.length, angle = i * 2.39996;
     const direction = i === 0 ? v(.12, .04, -1) : v(Math.cos(angle) * Math.sqrt(1 - y * y), y * .25, Math.sin(angle) * Math.sqrt(1 - y * y));
+    if (i > 1 && i % 2 === 0) direction.lerp(root.clone().sub(start.position).normalize(), .44).normalize();
     const radius = rand(.085, .13) * growthSettings.primaryThickness;
-    const primary = addBranch(path(root, direction, rand(27, 39), 10), radius, .008 + i * .008, rand(.25, .35), 0);
+    const primary = addBranch(path(start.position, direction, rand(27, 39), 10), radius, start.birth, rand(.25, .35), 0);
     primaries.push(primary); fork(primary, Math.round(4 * growthSettings.density));
   }
   // Short, unevenly sized hyphae fill the space near the seed and early forks.
@@ -260,10 +263,14 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
   const dustGeo = new THREE.BufferGeometry(); dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3)); dustGeo.setAttribute('color', new THREE.BufferAttribute(dustColors, 3));
   const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ size: .16, map: bloomMap, vertexColors: true, transparent: true, opacity: .51, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true }));
   scene.add(dust);
-  const seed = new THREE.Sprite(new THREE.SpriteMaterial({ map: bloomMap, color: '#eaffed', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
-  seed.position.copy(root); seed.scale.set(3, 3, 1); scene.add(seed);
-  const seedCore = new THREE.Mesh(new THREE.IcosahedronGeometry(.09, 2), new THREE.MeshBasicMaterial({ color: '#edf7e9' }));
-  seedCore.position.copy(root); scene.add(seedCore);
+  const seedCoreMaterial = new THREE.MeshBasicMaterial({ color: '#edf7e9' });
+  const seedEntries = origins.map((origin) => {
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: bloomMap, color: '#eaffed', transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    glow.position.copy(origin.position); scene.add(glow);
+    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(.09, 2), seedCoreMaterial);
+    core.position.copy(origin.position); scene.add(core);
+    return { birth: origin.birth, glow, core };
+  });
 
   let progress = 0, playing = false, activated = false, speed = growthSettings.speed, last = performance.now(), frameId = 0, lastUI = 0;
   let ongoingFollow = 0;
@@ -332,7 +339,13 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
     warm.position.copy(point).add(v(1, 2, 1)); cool.position.copy(point).add(v(-4, 4, -3)); pink.position.copy(point).add(v(4, -2, 2));
     dust.rotation.y = Math.sin(time * .00011) * .012;
     dust.material.opacity = .17 + smooth(progress / .52) * .28;
-    seed.material.opacity = progress > .2 ? .17 : .85 - progress * 3.4;
+    for (const entry of seedEntries) {
+      const appearance = originGlow(progress, entry.birth);
+      entry.glow.visible = entry.core.visible = appearance.visible;
+      entry.glow.material.opacity = appearance.opacity;
+      entry.glow.scale.setScalar(3 * appearance.scale);
+      entry.core.scale.setScalar(appearance.scale);
+    }
   }
 
   function burst() {
@@ -419,7 +432,8 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
       mushroomSystem.dispose();
       guide.dispose();
       ongoing.dispose();
-      [bark, fineBark, threadMat, haloMat, innerMat, violetFiber, tipMat, filamentMaterial, bloomMap, barkMap, dust.material, seed.material, seedCore.material].forEach(x => x.dispose());
+      [bark, fineBark, threadMat, haloMat, innerMat, violetFiber, tipMat, filamentMaterial, bloomMap, barkMap, dust.material, seedCoreMaterial].forEach(x => x.dispose());
+      seedEntries.forEach((entry) => entry.glow.material.dispose());
       composer.dispose();
       renderer.dispose();
     },

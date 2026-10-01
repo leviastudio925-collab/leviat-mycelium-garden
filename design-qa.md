@@ -30,3 +30,8 @@
 - 线上页面、`/api/config`、`/api/model` 均返回 200，模型为 16,240 字节；未带密钥的后台更新返回 401。
 - 已使用受保护接口上传当前默认参数和用户提供的蘑菇 GLB，线上 `/api/config` 指向 `/api/model`。
 - `npm run build`、`npm run test:api`、`npm run test:scene`、`npm run test:sites`、`npm run test:osc` 均通过。
+
+## 多起点生长
+
+- 四个空间位置分散的菌丝起点在开场约六秒内依次亮起，每个起点伸出两条同时生长的主路径；分叉继续交织。
+- 本地浏览器检查了起点出现、交织网络和后期红色蘑菇画面；仅保留底部时间轴。

@@ -10,7 +10,7 @@
     "deploy:cloudflare": "npm run build && wrangler deploy",
     "dev:cloudflare": "npm run build && wrangler dev",
     "test:sites": "node --test tests/sites-worker.test.mjs",
-    "test:scene": "node --test tests/guided-growth.test.mjs tests/ongoing-growth.test.mjs",
+    "test:scene": "node --test tests/growth-origins.test.mjs tests/guided-growth.test.mjs tests/ongoing-growth.test.mjs",
     "test:api": "node --test tests/runtime-config.test.mjs tests/client-config.test.mjs tests/admin-api.test.mjs",
     "update:config": "node scripts/publish-content.mjs config",
     "update:model": "node scripts/publish-content.mjs model",

@@ -1,6 +1,6 @@
 # 菌境 · Mycelium Garden
 
-一个可交互的菌丝生长场景。菌丝先扩散，红色蘑菇随后出现；时间轴到 100% 后仍会继续生长。
+一个可交互的菌丝生长场景。多个发光起点依次出现，同时向四周扩散、交织成网；红色蘑菇随后出现，时间轴到 100% 后仍会继续生长。
 
 在线网站：[leviat-mycelium-garden.leviastudio925.workers.dev](https://leviat-mycelium-garden.leviastudio925.workers.dev)。
 公开代码仓库：[leviastudio925-collab/leviat-mycelium-garden](https://github.com/leviastudio925-collab/leviat-mycelium-garden)。
