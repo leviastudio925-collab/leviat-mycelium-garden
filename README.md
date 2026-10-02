@@ -27,3 +27,7 @@ npm run test:osc
 ```
 
 默认模型位于 `public/models/3mushroom.glb`。上传新 GLB 后，网站会优先读取后台模型；新访问或刷新页面后可看到更新。
+
+## Blender 工程
+
+可编辑的菌丝、蘑菇 GLB 和镜头动画位于 [`exports/mycelium-garden.blend`](exports/mycelium-garden.blend)。操作与重新生成说明见 [BLENDER.md](BLENDER.md)。

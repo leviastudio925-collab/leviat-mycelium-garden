@@ -5,3 +5,4 @@ dist/
 .env*
 .admin-token
 *.log
+*.blend1
