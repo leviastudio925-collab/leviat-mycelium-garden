@@ -1,6 +1,6 @@
 # 菌境 · Mycelium Garden
 
-一个可交互的菌丝生长场景。六个彼此分散的发光起点依次出现，同时向四周扩散、交织成网；红色蘑菇随后出现，时间轴到 100% 后仍会继续生长。
+一个可交互的地下洞窟与菌丝生长场景。先在真实洞窟模型中行走，沿漂浮微光穿过曲折通道，进入深处的大空腔后转入菌丝生长。六个彼此分散的发光起点依次出现，同时向四周扩散、交织成网；红色蘑菇随后出现，时间轴到 100% 后仍会继续生长。
 
 在线网站：[leviat-mycelium-garden.leviastudio925.workers.dev](https://leviat-mycelium-garden.leviastudio925.workers.dev)。
 公开代码仓库：[leviastudio925-collab/leviat-mycelium-garden](https://github.com/leviastudio925-collab/leviat-mycelium-garden)。
@@ -12,7 +12,11 @@ npm ci
 npm run dev
 ```
 
-空格切换播放与暂停，WASD 引导枝条，R 从头开始。底部只显示时间轴。Arduino 的 OSC 启动接口见 [OSC.md](OSC.md)。
+洞窟阶段：WASD 行走，点击画面后鼠标控制视角，Esc 释放鼠标；不支持鼠标锁定的浏览器也可按住左键拖动视角。人物有石壁碰撞和地面跟随，发光粒子提示通往大空腔的路线；按正常步速沿路线行走约半分钟，抵达后自动衔接生长。
+
+生长阶段：WASD 引导枝条，底部只显示原有时间轴。两个阶段均可按空格暂停/继续，R 从洞窟入口重新开始。Arduino 的 OSC 启动接口见 [OSC.md](OSC.md)。
+
+洞窟资源位于 `public/models/cave.glb`。网页版本仅将原始 8K 贴图缩至 2K，几何与碰撞结构保持原样，体积约 15.5 MB；可用 `scripts/prepare-cave-model.py` 从原始 GLB 重新生成（需要 Pillow）。
 
 ## 发布与后台内容更新
 

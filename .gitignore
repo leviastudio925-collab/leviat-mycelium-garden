@@ -6,3 +6,4 @@ dist/
 .admin-token
 *.log
 *.blend1
+cave-inspection/

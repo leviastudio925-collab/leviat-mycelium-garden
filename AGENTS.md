@@ -10,6 +10,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 ## Visual direction retained from user feedback
 
+- Begin with a first-person walk inside the user's `public/models/cave.glb`. WASD moves relative to the mouse view, with ground support and collision against the cave mesh. Sparse glowing drifting particles suggest the connected route from a low tunnel to the deep, large chamber. Only reaching that chamber after walking triggers the reveal and fade into the existing mycelium scene. Keep the growth scene itself unchanged, including mushrooms, timeline and ongoing growth. R and OSC restart the whole experience from the cave entrance; Space pauses or resumes the current phase. Show a small initial control hint, then only the existing timeline during growth.
 - Growth starts from six well-separated luminous points that awaken over the first several seconds, then extend concurrently into a three-dimensional, mycelium-like network. Keep the opening camera wide enough to show their spacing before it follows a branch. Avoid a single dominant trunk or one overall growth direction.
 - The camera follows a seeded, connected sequence of random forks, then looks into the interwoven center as the space matures. Keep camera transitions smooth.
 - New branches must extend continuously, especially at the start; never reveal them by whole tube segments.
