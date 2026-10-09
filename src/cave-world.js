@@ -74,11 +74,16 @@ export function createCaveWorld(canvas, { onReady, onArrive, onHandoff, onLockCh
     const index = Math.floor(rand() * (CAVE_ROUTE.length - 1)), a = CAVE_ROUTE[index], b = CAVE_ROUTE[index + 1];
     const t = rand(), guide = i < 180;
     const spread = guide ? .7 : 3.4;
-    bases.push(new THREE.Vector3(
+    const base = new THREE.Vector3(
       THREE.MathUtils.lerp(a[0], b[0], t) + (rand() - .5) * spread,
       THREE.MathUtils.lerp(a[1], b[1], t) + .85 + rand() * (guide ? .9 : 2.2),
       THREE.MathUtils.lerp(a[2], b[2], t) + (rand() - .5) * spread,
-    ));
+    );
+    if (i >= 380) {
+      const angle = rand() * Math.PI * 2, radius = 2 + rand() * 9;
+      base.set(-45 + Math.cos(angle) * radius, -20 + rand() * 11, -33 + Math.sin(angle) * radius);
+    }
+    bases.push(base);
     phases.push(rand() * Math.PI * 2);
     const color = new THREE.Color(i % 5 === 0 ? '#edc68d' : '#b6ecdf');
     color.multiplyScalar(guide ? 2.4 : 1.5);
