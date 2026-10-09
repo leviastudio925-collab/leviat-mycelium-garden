@@ -51,13 +51,18 @@ export function createCaveWorld(canvas, { onReady, onArrive, onHandoff, onLockCh
   composer.addPass(bloom); composer.addPass(new OutputPass());
   scene.add(new THREE.AmbientLight('#87a5ac', .55));
   const lamp = new THREE.PointLight('#dce8df', 180, 28, 2);
-  const chamberLamp = new THREE.PointLight('#96e6dc', 260, 44, 2);
+  const chamberLamp = new THREE.PointLight('#96e6dc', 650, 44, 2);
+  const ceilingLamp = new THREE.PointLight('#c6d7c8', 1100, 40, 2);
+  ceilingLamp.position.set(-43, -3, -33);
   chamberLamp.position.set(-45, -15, -33);
-  scene.add(lamp, chamberLamp);
+  scene.add(lamp, chamberLamp, ceilingLamp);
   const keys = new Set();
   let player = null, ready = false, disposed = false, playing = true, arriving = false;
   let frameId = 0, last = performance.now(), time = 0, arrivalTime = 0, handedOff = false;
   let dragging = false, smoothedY = CAVE_START.spawn[1] + 1.7;
+  const chamberEntry = new THREE.Vector3();
+  const chamberEye = new THREE.Vector3(-45, -19.3, -33);
+  const chamberLook = new THREE.Vector3(-58, -8, -44);
   const glow = glowTexture();
   const particleCount = 480;
   const positions = new Float32Array(particleCount * 3), colors = new Float32Array(particleCount * 3);
@@ -163,13 +168,14 @@ export function createCaveWorld(canvas, { onReady, onArrive, onHandoff, onLockCh
       camera.position.set(player.position.x, smoothedY + (player.moving ? Math.sin(player.traveled * 5.8) * .024 : 0), player.position.z);
       if (!arriving) camera.rotation.set(player.pitch, player.yaw, 0, 'YXZ');
       if (!arriving && player.reachedChamber) {
+        chamberEntry.copy(camera.position);
         arriving = true; clearKeys(); onArrive();
         if (locked()) document.exitPointerLock();
       }
       if (arriving) {
         if (playing) arrivalTime += dt;
-        const target = new THREE.Vector3(-45, -9, -33);
-        const orientation = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(camera.position, target, camera.up));
+        camera.position.lerpVectors(chamberEntry, chamberEye, THREE.MathUtils.smoothstep(arrivalTime, 0, 2.8));
+        const orientation = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(camera.position, chamberLook, camera.up));
         camera.quaternion.slerp(orientation, 1 - Math.exp(-dt * 1.35));
         if (arrivalTime > 3.1 && !handedOff) { handedOff = true; onHandoff(); }
       }
