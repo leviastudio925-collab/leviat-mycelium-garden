@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { createMushroomPlan } from './mushroom-plan';
 
 const clamp = (x) => Math.max(0, Math.min(1, x));
 const ease = (x) => { const t = clamp(x); return t * t * (3 - 2 * t); };
-const capColors = ['#ff5123', '#ff6926', '#ff7c32', '#e9441d', '#ff8b3c', '#f75c26'];
 
 // The supplied GLB remains the cap source. These deterministic variants change
 // its rim, width, depth and profile while retaining the sculpted original.
@@ -42,26 +42,7 @@ function capVariant(source, variant) {
 }
 
 export function createMushroomSystem(scene, sites, rand, random, modelUrl = '/models/3mushroom.glb', sizeMultiplier = 1) {
-  const clusters = [];
-  const selected = sites.filter((_, i) => i % 6 === 0 || (i % 5 === 0 && random() > .48));
-  for (const site of selected) {
-    const t = rand(.18, .94), center = site.curve.getPointAt(t);
-    const count = Math.floor(rand(3, 9));
-    for (let i = 0; i < count; i++) {
-      const angle = rand(0, Math.PI * 2), spread = Math.pow(random(), .8) * rand(.35, 2.25);
-      const scale = i === 0 ? rand(.55, .93) : Math.pow(random(), 1.8) * .64 + .09;
-      clusters.push({
-        point: center.clone().add(new THREE.Vector3(Math.cos(angle) * spread, rand(-.16, .16), Math.sin(angle) * spread)),
-        birth: Math.min(.93, Math.max(site.birth + site.spread * t * .7 + .02, .61 + random() * .29)),
-        duration: rand(.045, .11),
-        size: scale * rand(.58, 1.13) * sizeMultiplier,
-        height: rand(.35, 1.5),
-        variant: Math.floor(random() * 8),
-        tiltX: rand(-.22, .22), tiltZ: rand(-.22, .22), rotation: rand(0, Math.PI * 2),
-        color: new THREE.Color(capColors[Math.floor(random() * capColors.length)]),
-      });
-    }
-  }
+  const clusters = createMushroomPlan(sites, rand, random, sizeMultiplier);
   const capMaterial = new THREE.MeshPhysicalMaterial({ color: '#ffffff', vertexColors: true, roughness: .33, metalness: .02, clearcoat: .65, clearcoatRoughness: .24, side: THREE.DoubleSide, emissive: '#b33911', emissiveIntensity: .38 });
   const stemMaterial = new THREE.MeshStandardMaterial({ color: '#c8afa0', roughness: .86, emissive: '#684739', emissiveIntensity: .12 });
   const stemGeometry = new THREE.CylinderGeometry(.06, .11, 1, 7, 1);

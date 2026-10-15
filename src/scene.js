@@ -9,6 +9,7 @@ import { createOngoingGrowth } from './ongoing-growth';
 import { createGrowthPlan, originGlow, openingViewWeight } from './growth-origins';
 import { advancePostTimelineFollow, centerPull, followEyeOffsets } from './post-timeline-camera';
 import { DEFAULT_CONFIG } from '../shared/runtime-config';
+import { advanceTimeline, growthPhase } from './growth-timing';
 
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
 const smooth = (x) => { const t = clamp(x); return t * t * (3 - 2 * t); };
@@ -199,7 +200,7 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
     if (i > 1 && start.arm === 0) direction.lerp(colonyCenter.clone().sub(start.position).normalize(), .44).normalize();
     const radius = rand(.085, .13) * growthSettings.primaryThickness;
     const primary = addBranch(path(start.position, direction, rand(27, 39), 10), radius, start.birth, rand(.25, .35), 0);
-    primaries.push(primary); fork(primary, Math.round(3 * growthSettings.density));
+    primaries.push(primary); fork(primary, Math.round(4 * growthSettings.density));
   }
   // Short, unevenly sized hyphae fill the space near the seed and early forks.
   function addCoreShoot(parent, attach, length, radius) {
@@ -275,7 +276,7 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
     return { birth: origin.birth, glow, core };
   });
 
-  let progress = 0, playing = false, activated = false, speed = growthSettings.speed, last = performance.now(), frameId = 0, lastUI = 0;
+  let timeline = 0, progress = 0, playing = false, activated = false, speed = growthSettings.speed, last = performance.now(), frameId = 0, lastUI = 0;
   let ongoingFollow = 0;
   let lastGeometryProgress = NaN;
   let yaw = 0, pitch = 0, distance = 1, dragging = false, pointer = null;
@@ -397,11 +398,13 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
   }
 
   function tick(now) {
-    const dt = Math.min((now - last) / 1000, .05); last = now;
+    const elapsed = Math.max(0, (now - last) / 1000);
+    const dt = Math.min(elapsed, .05); last = now;
     if (playing) {
       if (progress < 1) {
-        progress = clamp(progress + dt * speed / 54);
-        if (progress >= 1 || now - lastUI > 90) { onProgress(progress); lastUI = now; }
+        timeline = advanceTimeline(timeline, elapsed, speed);
+        progress = growthPhase(timeline);
+        if (progress >= 1 || now - lastUI > 90) { onProgress(timeline); lastUI = now; }
       }
       if (progress >= 1) {
         if (!ongoing.active) ongoing.start();
@@ -422,14 +425,15 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
   return {
     play() { activated = true; playing = true; guide.resume(); ongoing.resume(); last = performance.now(); },
     pause() { playing = false; clearKeys(); guide.pause(); ongoing.pause(); },
-    reset() { progress = 0; playing = false; activated = false; clearKeys(); guideFocus = 0; ongoingFollow = 0; guide.reset(); ongoing.reset(); yaw = 0; pitch = 0; distance = 1; onProgress(0); updateGeometry(); updateCamera(performance.now(), .016, true); },
+    reset() { timeline = 0; progress = 0; playing = false; activated = false; clearKeys(); guideFocus = 0; ongoingFollow = 0; guide.reset(); ongoing.reset(); yaw = 0; pitch = 0; distance = 1; onProgress(0); updateGeometry(); updateCamera(performance.now(), .016, true); },
     setSpeed(value) { speed = value; },
     setProgress(value) {
       const wasComplete = progress >= 1;
-      progress = clamp(value);
+      timeline = clamp(value);
+      progress = growthPhase(timeline);
       if (wasComplete && progress < 1) { ongoing.reset(); guide.reset(); guideFocus = 0; ongoingFollow = 0; clearKeys(); }
       if (progress >= 1 && playing && !ongoing.active) ongoing.start();
-      updateGeometry(); updateCamera(performance.now(), .016, true); onProgress(progress);
+      updateGeometry(); updateCamera(performance.now(), .016, true); onProgress(timeline);
     },
     dispose() {
       cancelAnimationFrame(frameId); observer.disconnect();

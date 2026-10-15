@@ -57,7 +57,7 @@ $env:NODE_USE_ENV_PROXY = '1'
 | --- | --- | --- |
 | `growth.primaryThickness` | `0.5–2` | 主分支粗细倍率 |
 | `growth.secondaryThickness` | `0.3–1.5` | 二级分支粗细倍率 |
-| `growth.speed` | `0.25–3` | 时间轴及后续生长速度倍率 |
+| `growth.speed` | `0.25–3` | 播放速度倍率；默认 1 时生长阶段为 120 秒，先慢后快；同时影响终点后的延伸速度 |
 | `growth.density` | `0.5–1.25` | 分叉数量倍率 |
 | `mushrooms.size` | `0.5–2` | 蘑菇模型大小倍率 |
 
