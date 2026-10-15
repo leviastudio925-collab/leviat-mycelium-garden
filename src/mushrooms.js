@@ -43,7 +43,7 @@ function capVariant(source, variant) {
 
 export function createMushroomSystem(scene, sites, rand, random, modelUrl = '/models/3mushroom.glb', sizeMultiplier = 1) {
   const clusters = createMushroomPlan(sites, rand, random, sizeMultiplier);
-  const capMaterial = new THREE.MeshPhysicalMaterial({ color: '#ffffff', vertexColors: true, roughness: .33, metalness: .02, clearcoat: .65, clearcoatRoughness: .24, side: THREE.DoubleSide, emissive: '#b33911', emissiveIntensity: .38 });
+  const capMaterial = new THREE.MeshPhysicalMaterial({ color: '#ffffff', vertexColors: true, roughness: .33, metalness: .02, clearcoat: .65, clearcoatRoughness: .24, side: THREE.DoubleSide, emissive: '#b33911', emissiveIntensity: .52 });
   const stemMaterial = new THREE.MeshStandardMaterial({ color: '#c8afa0', roughness: .86, emissive: '#684739', emissiveIntensity: .12 });
   const stemGeometry = new THREE.CylinderGeometry(.06, .11, 1, 7, 1);
   const stemMesh = new THREE.InstancedMesh(stemGeometry, stemMaterial, clusters.length);

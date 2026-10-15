@@ -97,7 +97,7 @@ export function createWorld(canvas, onProgress, runtime = { config: DEFAULT_CONF
   const camera = new THREE.PerspectiveCamera(66, 1, .5, 210);
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), .63, .48, .78));
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), .42, .35, .4));
   composer.addPass(new OutputPass());
   scene.add(new THREE.AmbientLight('#ced1ca', .58));
   const warm = new THREE.PointLight('#fff2dc', 11, 31, 2), cool = new THREE.PointLight('#9daec4', 7, 27, 2), pink = new THREE.PointLight('#d73c21', 5, 26, 2);

@@ -47,7 +47,7 @@ export function createCaveWorld(canvas, { onReady, onArrive, onHandoff, onLockCh
   camera.rotation.order = 'YXZ';
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .58, .5, .72);
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .68, .58, .65);
   composer.addPass(bloom); composer.addPass(new OutputPass());
   scene.add(new THREE.AmbientLight('#87a5ac', .55));
   const lamp = new THREE.PointLight('#dce8df', 180, 28, 2);
